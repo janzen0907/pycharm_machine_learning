@@ -11,3 +11,4 @@ my_planes = pd.read_csv("Data/wwIIAircraft.csv")
 # Print out all the planes whose Country of Origin is the us
 us_planes = my_planes[my_planes["Country of Origin"] == "US"]
 print(us_planes)
+

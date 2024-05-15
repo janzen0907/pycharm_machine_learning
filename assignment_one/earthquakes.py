@@ -9,7 +9,7 @@ import numpy as np
 # c = 2 ⋅ atan2( √a, √(1−a) )
 # d = R ⋅ c
 def calc_distance(lat1, long1, lat2, long2):
-    '''Will return the distance in KM between two Lat/Long Coordinates using Haversine Formula'''
+    """Will return the distance in KM between two Lat/Long Coordinates using Haversine Formula"""
     # Mean radius of the earth in metres
     radius = 6713 ** 3
     # Honestly, i'm not to sure what all these math symbols are. I googled them
@@ -26,9 +26,8 @@ def calc_distance(lat1, long1, lat2, long2):
 
 
 class QuakeData:
-    '''Class to represent data regarding Earth Quakes'''
-
-    def init(self, geojson):
+    """Class to represent data regarding Earth Quakes"""
+    def __init__(self, geojson):
         # Array to hold valid EarthQuaks
         self.quake_array = []
 
@@ -75,13 +74,13 @@ class QuakeData:
             self.quake_array = np.array(data, dtype=dtype)
 
     def set_location_filter(self, latitude, longitude, distance):
-        '''Returns Quakes within the distance the distance of the latitude and longitude being passed in'''
+        """Returns Quakes within the distance the distance of the latitude and longitude being passed in"""
         self.filter_latitude = latitude
         self.filter_longiture = longitude
         self.filter_distance = distance
 
     def set_property_filter(self, magnitude=None, felt=None, significance=None):
-        '''Return only quakes whose magnitude, felt, or significance properties are at least the values supplied'''
+        """Return only quakes whose magnitude, felt, or significance properties are at least the values supplied"""
         # Check that one property was passed in
         if magnitude is None and felt is None and significance is None:
             raise ValueError("Please supply at least one parameter")
@@ -91,7 +90,7 @@ class QuakeData:
         self.filter_significance = significance
 
     def clear_filter(self):
-        '''Will clear all the filters'''
+        """Will clear all the filters"""
         self.filter_distance = None
         self.filter_felt = None
         self.filter_latitude = None
@@ -100,7 +99,7 @@ class QuakeData:
         self.filter_significance = None
 
     def get_filtered_array(self):
-        '''Returns a numpy array of only quakes that meet the passed in critera to the filters'''
+        """Returns a numpy array of only quakes that meet the passed in critera to the filters"""
         # Check if there is quake data in th quake array
         if self.quake_array is None:
             return None
@@ -133,7 +132,7 @@ class QuakeData:
         return self.quake_array
 
     def get_filtered_list(self):
-        '''Return a list of Quake objects containing the quakes that met the above filters'''
+        """Return a list of Quake objects containing the quakes that met the above filters"""
         # Call the function to get a filtered array
         filtered_array = self.get_filtered_array()
 
@@ -148,7 +147,7 @@ class QuakeData:
 
 
 class Quake:
-    '''Contains data about a quake'''
+    """Contains data about a quake"""
 
     def __init__(self, magnitude, time, felt, significance, q_type, coords):
         self.magnitude = magnitude
@@ -160,17 +159,18 @@ class Quake:
         self.long = coords[1]
 
     def __str__(self):
-        '''Returns a constructed string to represent a Quake Object'''
+        """Returns a constructed string to represent a Quake Object"""
         return f"{self.magnitude} Magnitude Earthquake, {self.significance} Significance, felt by {self.felt} people in ({self.lat}, {self.long})"
 
     def get_distance_from(self, latitude, longitude, distance):
-        '''Return the number of KM the quake is away from the passed in point'''
+        """Return the number of KM the quake is away from the passed in point"""
         # Calling my previously made function for this, I don't think anything really changes so I will call the method
         calc_distance(self.lat, self.long, latitude, longitude)
 
 
 # Testing Quake string
 # test_quake = Quake(1,5.0,10,5,1,(10,100.5))
+# print(test_quake)
 # print(test_quake)
 
 

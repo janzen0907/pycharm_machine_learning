@@ -25,6 +25,17 @@ df2 = pd.DataFrame(
     }
 )
 
+# Add another column of data to the data frame
+plays = ["Sings", "Bass", "Drums", "Sings"]
+df2['plays'] = plays
+
+# Add a new row
+# 1 We can get the length (# rows) of the dataframe by using the len(index property)
+# We can then add at that location by just creating the appropriate row entry
+df2.loc[len(df2.index)] = [14, "Mike", "Alive", "Beatles", "Drums"]
+
+
+
 print(df2)
 print(df2.dtypes)
 
@@ -50,6 +61,9 @@ print(df2.loc[::, ["Names", "Status"]])
 # For the following we will list the entries assocatied with the dead beatles
 dfDead = df2[df2["Status"] == "Dead"]
 print(f"\nDead Guys:\n{dfDead}\n")
+
+dfAlive = df2[df2["Status"] == "Alive"]
+print(f"\nAlive Guys:\n{dfAlive}")
 
 # Bryce was having issues here
 # dfIds = df2[df2["Status"] == "Dead"["IDS"]]
