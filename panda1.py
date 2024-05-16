@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 
+
 # create a panda series
 series1 = pd.Series([12,14,17,19,20], index=["one", "two", "three", "four", "five"])
 print(series1)
