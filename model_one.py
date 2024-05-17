@@ -1,7 +1,29 @@
+import keras
 import pandas as pd
 import numpy as np
 import seaborn as sb
 import matplotlib.pyplot as plt
+from keras import layers
+
+def acc_chart(results):
+    plt.title("Accuracy of Model")
+    plt.ylabel("Accuracy")
+    plt.xlabel("Epochs")
+    plt.plot(results.history['accuracy'])
+    plt.plot(results.history['val_accuracy'])
+    plt.legend(["train", "test"], loc="upper left")
+    plt.show()
+
+def loss_chart(results):
+    plt.title("Model Loss")
+    plt.ylabel("Loss")
+    plt.xlabel("Epochs")
+    plt.plot(results.history['loss'])
+    plt.plot(results.history['val_loss'])
+    plt.legend(["train", "test"], loc="upper left")
+    plt.show()
+
+
 
 df = pd.read_csv("Data/kc_house_data.csv")
 
@@ -65,8 +87,47 @@ print(f"Good Data \n {df.head().to_string()}")
 # HEat map can be used to show the correaltaion between different series
 # The heat map shows corallation, brighter colors is high corralation, dark collors is low corralation
 
-plt.figure(figsize=(30,20))
-sb.heatmap(df.corr(), annot=True)
-plt.show()
+# plt.figure(figsize=(30,20))
+# sb.heatmap(df.corr(), annot=True)
+# plt.show()
+
+# We want to be able to predict the price of a house based upon
+# other series values. So we are going to create a DataFrame for
+# our input values and another dataframe four output values,
+# Both of these become part of our model analysis later on.
+
+x = df.drop("price", axis=1)
+y = df["price"]
+
+print(f"{x.head().to_string()}\n {y.head().to_string()}")
+
+print(f" {x.shape} and {y.shape}")
+
+# Define our model
+# One input layer, one hidden layer and one output layer
+my_model = keras.Sequential()
+# This matches up to the number of columns
+my_model.add(layers.Dense(14, activation="relu"))
+my_model.add(layers.Dense(4, activation="relu"))
+my_model.add(layers.Dense(2, activation="relu"))
+my_model.add(layers.Dense(1))
+
+# Compile our model and put these into a result series
+my_model.compile(optimizer="adam", loss="mse", metrics=['accuracy'])
+# Batch size - Number of seperate entries
+# Epochs number of times throught he system
+# Can play with the batch size and epochs. more epochs is generally more accurate
+results = my_model.fit(x ,y, validation_split=0.33, batch_size=64, epochs=33)
+
+# Steps to do things in the console
+# Copy and paste all the code in the python console
+# print an entry
+# print(df.loc[781:781].to_string())
+# create a sample house with the data from the above print
+# samp_house = np.array([[3,1.75,1590,8219,1.5,0,0,5,6,970,620,2030,7504,76]], dtype=np.float64)
+# Create the predicted entry with the model
+# pred_house = my_model.predict(samp_house)
+# print that out
+# print(pred_house[0])
 
 

@@ -23,12 +23,21 @@ def calc_distance(lat1, long1, lat2, long2):
         delta_lamda / 2) * np.sin(delta_lamda / 2)
     c = 2 * np.arctan2(np.sqrt(a), np.sqrt(1 - a))
     d = radius * c
+    print(f"In calc distance testing distance: {d}")
+    return d
 
 
 class QuakeData:
     """Class to represent data regarding Earth Quakes"""
+
     def __init__(self, geojson):
         # Array to hold valid EarthQuaks
+        self.filter_significance = None
+        self.filter_felt = None
+        self.filter_distance = None
+        self.filter_longiture = None
+        self.filter_latitude = None
+        self.filter_magnitude = None
         self.quake_array = []
 
         # Get the features from the dict
@@ -50,15 +59,17 @@ class QuakeData:
         # Loop through the features
         for feature in features:
             # Check if the type is a feature
+            # May need to be capital F
             if feature.get('type') == 'feature':
                 properties = feature.get('properties', {})
                 geometry = feature.get('geometry', {})
 
                 # Ensure that properties contains the proper fields
                 if 'mag' in properties and 'time' in properties and 'felt' in properties and 'sig' in properties and 'type' in properties:
+                    # if all(key in properties for key in ['mag', 'time', 'felt', 'sig', 'type']):
                     # Check that point does not exist
                     if geometry.get('type') == 'Point' and 'coordinates' in geometry and len(
-                            geometry['coordinates'] == 3):
+                            geometry['coordinates']) == 3:
                         # Get the data and build the array
                         quake = feature
                         magnitude = properties['mag']
@@ -68,10 +79,12 @@ class QuakeData:
 
                         # Add the data to the list
                         data.append((quake, magnitude, felt, signifigance, lat, long))
+                        print(f"In constructor before converting to numpy array: {data}")
 
         # If the data is correct. Convert it to a nump array
         if data:
             self.quake_array = np.array(data, dtype=dtype)
+            print(f"In the contructor building the array: {self.quake_array}")
 
     def set_location_filter(self, latitude, longitude, distance):
         """Returns Quakes within the distance the distance of the latitude and longitude being passed in"""
@@ -101,12 +114,19 @@ class QuakeData:
     def get_filtered_array(self):
         """Returns a numpy array of only quakes that meet the passed in critera to the filters"""
         # Check if there is quake data in th quake array
+        print(f"Start of get filtered array: {self.quake_array}")
+        print(
+            f"Passed in filters to get filtered array: Mag: {self.filter_magnitude}, Felt: {self.filter_felt},  Sig: {self.filter_significance}")
+        # Working
+        # print(f"Passed in filters to get filtered array: LAt: {self.filter_latitude}, Long: {self.filter_longiture},  Distance: {self.filter_distance}")
         if self.quake_array is None:
             return None
 
         # Filters for the location
         if self.filter_latitude is not None and self.filter_latitude is not None and self.filter_distance is not None:
             quakes_filtered = []
+            print(f"Quakes filtered before looping through quake array {quakes_filtered}")
+            print(f"Quake Array before looping through quake array {self.quake_array}")
 
             for quake in self.quake_array:
                 quake_lat = quake['lat']
@@ -116,6 +136,7 @@ class QuakeData:
 
                 if distance <= self.filter_distance:
                     quakes_filtered.append(quake)
+            print(f"Filtered array, NP data {np.array(quakes_filtered)}")
             return np.array(quakes_filtered)
 
         # Filters for the properties.
@@ -129,21 +150,30 @@ class QuakeData:
                     return np.array(quakes_filtered)
 
         # No location was set, return the original array
+        print(f"In Get Filtered array: {self.quake_array}")
         return self.quake_array
 
     def get_filtered_list(self):
         """Return a list of Quake objects containing the quakes that met the above filters"""
         # Call the function to get a filtered array
+
         filtered_array = self.get_filtered_array()
+        print(f"Filtered array in get filtered list is: {filtered_array}")
 
         # Ensure it contains data
         if filtered_array is not None:
             filtered_list = []
-            for quake in filtered_array:
+            for quake_data in filtered_array:
+                # Not sure if this is correct
+                quake = Quake(quake_data['magnitude'], quake_data['time'], quake_data['felt'],
+                              quake_data['significance'], quake_data['quake']['type'],
+                              (quake_data['lat'], quake_data['long']))
+
                 # Loop through the array and add the quaakes to the list
                 filtered_list.append(quake['quake'])
+
+            print(f"In Get filtered List: {filtered_list}")
             return filtered_list
-        return None
 
 
 class Quake:
@@ -167,11 +197,7 @@ class Quake:
         # Calling my previously made function for this, I don't think anything really changes so I will call the method
         calc_distance(self.lat, self.long, latitude, longitude)
 
-
 # Testing Quake string
 # test_quake = Quake(1,5.0,10,5,1,(10,100.5))
 # print(test_quake)
 # print(test_quake)
-
-
-
