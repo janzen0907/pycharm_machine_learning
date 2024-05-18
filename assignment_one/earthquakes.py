@@ -4,6 +4,8 @@ import numpy as np
 # Author: John Janzen(janzen0907)
 # Class: COET295 - Assignment 1 Python
 
+# TODO: Solve the filtering not working. 
+
 # Haversine
 # formula:	a = sin²(Δφ/2) + cos φ1 ⋅ cos φ2 ⋅ sin²(Δλ/2)
 # c = 2 ⋅ atan2( √a, √(1−a) )
@@ -23,13 +25,25 @@ def calc_distance(lat1, long1, lat2, long2):
         delta_lamda / 2) * np.sin(delta_lamda / 2)
     c = 2 * np.arctan2(np.sqrt(a), np.sqrt(1 - a))
     d = radius * c
+    # print(f"In calc distance {d}")
+    return d
 
 
 class QuakeData:
     """Class to represent data regarding Earth Quakes"""
+
     def __init__(self, geojson):
         # Array to hold valid EarthQuaks
         self.quake_array = []
+
+        # Filter attributes
+        self.filter_latitude = None
+        self.filter_longiture = None
+        self.filter_distance = None
+        self.filter_magnitude = None
+        self.filter_felt = None
+        self.filter_time = None
+        self.filter_significance = None
 
         # Get the features from the dict
         features = geojson.get('features', [])
@@ -50,7 +64,7 @@ class QuakeData:
         # Loop through the features
         for feature in features:
             # Check if the type is a feature
-            if feature.get('type') == 'feature':
+            if feature.get('type') == 'Feature':
                 properties = feature.get('properties', {})
                 geometry = feature.get('geometry', {})
 
@@ -58,11 +72,11 @@ class QuakeData:
                 if 'mag' in properties and 'time' in properties and 'felt' in properties and 'sig' in properties and 'type' in properties:
                     # Check that point does not exist
                     if geometry.get('type') == 'Point' and 'coordinates' in geometry and len(
-                            geometry['coordinates'] == 3):
+                            geometry['coordinates']) == 3:
                         # Get the data and build the array
                         quake = feature
                         magnitude = properties['mag']
-                        felt = properties['felt']
+                        felt = properties['felt'] if properties['felt'] is not None else 0
                         signifigance = properties['sig']
                         lat, long = geometry['coordinates'][:2]
 
@@ -89,7 +103,7 @@ class QuakeData:
         self.filter_felt = felt
         self.filter_significance = significance
 
-    def clear_filter(self):
+    def clear_filter(self, magnitude=None, felt=None, significance=None, lat=None, long=None, distance=None):
         """Will clear all the filters"""
         self.filter_distance = None
         self.filter_felt = None
@@ -104,19 +118,36 @@ class QuakeData:
         if self.quake_array is None:
             return None
 
+        quakes_filtered = self.quake_array
+
         # Filters for the location
-        if self.filter_latitude is not None and self.filter_latitude is not None and self.filter_distance is not None:
-            quakes_filtered = []
+        if self.filter_latitude is not None and self.filter_longiture is not None and self.filter_distance is not None:
+            quakes_filtered = np.array([
+                quake for quake in quakes_filtered
+                if calc_distance(self.filter_latitude, self.filter_longiture, quake['lat'],
+                                 quake['long']) <= self.filter_distance
+            ])
 
-            for quake in self.quake_array:
-                quake_lat = quake['lat']
-                quake_long = quake['long']
+        # Filters for the properties
+        if self.filter_magnitude is not None or self.filter_felt is not None or self.filter_significance is not None:
+            quakes_filtered = np.array([
+                quake for quake in quakes_filtered
+                if (self.filter_magnitude is None or quake['magnitude'] >= self.filter_magnitude) and
+                   (self.filter_felt is None or quake['felt'] >= self.filter_felt) and
+                   (self.filter_significance is None or quake['significance'] >= self.filter_significance)
+            ])
 
-                distance = calc_distance(self.filter_latitude, self.filter_longiture, quake_lat, quake_long)
-
-                if distance <= self.filter_distance:
-                    quakes_filtered.append(quake)
-            return np.array(quakes_filtered)
+            # for quake in self.quake_array:
+            #     quake_lat = quake['lat']
+            #     quake_long = quake['long']
+            #
+            #     distance = calc_distance(self.filter_latitude, self.filter_longiture, quake_lat, quake_long)
+            #     if distance is None:
+            #         distance = 0
+            #
+            #     if distance <= self.filter_distance:
+            #         quakes_filtered.append(quake)
+            return quakes_filtered
 
         # Filters for the properties.
         if self.filter_magnitude is not None or self.filter_felt is not None or self.filter_significance is not None:
@@ -167,11 +198,7 @@ class Quake:
         # Calling my previously made function for this, I don't think anything really changes so I will call the method
         calc_distance(self.lat, self.long, latitude, longitude)
 
-
 # Testing Quake string
 # test_quake = Quake(1,5.0,10,5,1,(10,100.5))
 # print(test_quake)
 # print(test_quake)
-
-
-
