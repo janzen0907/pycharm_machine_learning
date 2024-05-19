@@ -4,7 +4,7 @@ import numpy as np
 # Author: John Janzen(janzen0907)
 # Class: COET295 - Assignment 1 Python
 
-# TODO: Solve the filtering not working. 
+# TODO: Solve the filtering not working.
 
 # Haversine
 # formula:	a = sin²(Δφ/2) + cos φ1 ⋅ cos φ2 ⋅ sin²(Δλ/2)
@@ -137,30 +137,11 @@ class QuakeData:
                    (self.filter_significance is None or quake['significance'] >= self.filter_significance)
             ])
 
-            # for quake in self.quake_array:
-            #     quake_lat = quake['lat']
-            #     quake_long = quake['long']
-            #
-            #     distance = calc_distance(self.filter_latitude, self.filter_longiture, quake_lat, quake_long)
-            #     if distance is None:
-            #         distance = 0
-            #
-            #     if distance <= self.filter_distance:
-            #         quakes_filtered.append(quake)
             return quakes_filtered
 
-        # Filters for the properties.
-        if self.filter_magnitude is not None or self.filter_felt is not None or self.filter_significance is not None:
-            quakes_filtered = []
-            for quake in self.quake_array:
-                # Using / to break this wonderful if statement onto multipl lines for readability
-                if self.filter_magnitude is None or quake['magnitude'] >= self.filter_magnitude and \
-                        self.filter_felt is None or quake['felt'] >= self.filter_felt and \
-                        self.filter_significance is None or quake['significance'] >= self.filter_significance:
-                    return np.array(quakes_filtered)
-
         # No location was set, return the original array
-        return self.quake_array
+        # return self.quake_array
+        return quakes_filtered
 
     def get_filtered_list(self):
         """Return a list of Quake objects containing the quakes that met the above filters"""
