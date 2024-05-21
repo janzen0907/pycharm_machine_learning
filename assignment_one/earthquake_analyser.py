@@ -9,8 +9,10 @@ import matplotlib.pyplot as plt
 from assignment_one import earthquakes
 from earthquakes import Quake, QuakeData
 
-# Path to the default json file
-path = Path("./earthquakes.geojson")
+# D:\pycharm_machine_learning\assignment_one\earthquake_analyser.py
+# Path to the default json file At Home this will chane at school
+path = Path("D:/pycharm_machine_learning/assignment_one/earthquakes.geojson")
+
 
 # print(f"Current working directory: {os.getcwd()}")
 # print(path)
@@ -30,6 +32,7 @@ def display_menu():
     print("8: Plot Magnitude Chart\n")
     print("0: Quit the program")
 
+
 def get_lat_long_distance():
     """Function to promt the user for the lat, long and distance values."""
     filter_lat = input("Enter Latitude: ")
@@ -43,6 +46,7 @@ def get_lat_long_distance():
         print("Values must be numbers")
         return None, None, None
     return filter_lat, filter_long, filter_distance
+
 
 def get_sig_felt_mag():
     """Function to promt the user for the significance, felt and longitude values."""
@@ -59,6 +63,7 @@ def get_sig_felt_mag():
         return filter_sig, filter_felt, filter_mag
 
     return filter_sig, filter_felt, filter_mag
+
 
 def get_exceptional_quakes(quake_data):
     """Function that will return the quakes that are greater than one standard deviation above the median quake magnitude"""
@@ -121,7 +126,7 @@ def plot_quake_map(quake_data):
     magnitudes = filtered_quakes['magnitude']
 
     plt.figure(figsize=(10, 6))
-    plt.scatter(longs, lats, s=magnitudes**2, alpha=0.5)
+    plt.scatter(longs, lats, s=magnitudes ** 2, alpha=0.5)
     plt.colorbar(label='Magnitude')
     plt.xlabel('Longitude')
     plt.ylabel('Latitude')
@@ -148,25 +153,88 @@ def plot_magnitude_chart(quake_data):
     plt.show()
 
 
-
 def main():
     # Check the supplied arguments. If no arguments are passed in we will read it in from earthquakes.geojson
-    if len(sys.argv) != 1:
-        # Read in the default file
-        earthquakes = json.loads(path.read_text())
+
+    if len(sys.argv) == 2:  # Check if exactly one command-line argument is provided
+        # file_to_read = Path("D:/pycharm_machine_learning/assignment_one/earthquakes.geojson")
+        file_to_read = Path(sys.argv[1])
+        #  print(sys.argv[1])
+        # print(path)
+        earthquakes = json.loads(file_to_read.read_text())
         quake_data = QuakeData(earthquakes)
-
-    # If an arg was passed in read in the supplied script
-    elif len(sys.argv) == 1:
-        # print the name of the script
-        print(f"Reading in {sys.argv[0]}")
-        # Variable for the script name
-        script_name = sys.argv[0]
-        # Path for the script
-        script_path = Path(f"./{script_name}")
-        earthquakes = json.loads(script_path.read_text())
+        # print(earthquakes)
+        # print(quake_data)
+    elif len(sys.argv) == 1:  # If no command-line arguments provided, use default file
+        file_to_read = Path("D:/pycharm_machine_learning/assignment_one/earthquakes.geojson")
+        earthquakes = json.loads(file_to_read.read_text())
         quake_data = QuakeData(earthquakes)
+        # print(earthquakes)
+        # print(quake_data)
+    else:
+        print("Usage: python script.py [json_file]")
+        sys.exit(1)
+
+    while True:
+        display_menu()
+        choice = input("Enter your choice")
+        # Ensure that the input is a int
+        try:
+            choice = int(choice)
+        except ValueError:
+            print("Please enter a valid number (0-9)")
+            continue
+
+        # Logic for the different options
+        if choice == 1:  # Get the values from the get function
+            filter_lat, filter_long, filter_distance = get_lat_long_distance()
+            # Ensure none of the values are None
+            if filter_lat is not None and filter_long is not None and filter_distance is not None:
+                quake_data.set_location_filter(filter_lat, filter_long, filter_distance)
+
+            print(f"Filtering by Latitude: {filter_lat}, Longitude: {filter_long}, and Distance: {filter_distance}")
+
+        elif choice == 2:
+            filter_sig, filter_felt, filter_mag = get_sig_felt_mag()
+            # Set the filters.
+            quake_data.set_property_filter(filter_mag, filter_felt, filter_sig)
+            print(f"Filtering by Magnitude: {filter_mag}, Felt: {filter_felt}, and Significance: {filter_sig}")
+
+        elif choice == 3:
+            # Clear all filters, set the values to none
+            filter_lat, filter_long, filter_distance, filter_sig, filter_felt, filter_mag = None, None, None, None, None, None
+            quake_data.clear_filter()
+            print(
+                f"Current filters are reset: {filter_lat}, {filter_long}, {filter_distance}, {filter_sig}, {filter_felt}, {filter_mag}")
+
+        elif choice == 4:
+            # print(quake_data)
+            # Either shows all quakes or no quakes, filters are not filtering properly
+            print(quake_data.get_filtered_list())
+            # Values are being set properly at this point but get filtered list is not filtering
+            # print(f"In print data {filter_lat}, {filter_long}, {filter_distance}, {filter_sig}, {filter_felt}, {filter_mag}")
+
+        elif choice == 5:
+            exep_quakes = get_exceptional_quakes(quake_data)
+            # Check if there are any exeptional quakes and print them
+            if exep_quakes:
+                for quake in exep_quakes:
+                    print(quake)
+            else:
+                print("No exceptional quakes")
+
+        elif choice == 6:
+            display_mag_stats(quake_data)
+
+        elif choice == 7:
+            plot_quake_map(quake_data)
+
+        elif choice == 8:
+            plot_magnitude_chart(quake_data)
+
+        elif choice == 0:
+            quit(1)
 
 
-
-
+if __name__ == "__main__":
+    main()
