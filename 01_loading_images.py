@@ -36,7 +36,11 @@ print(cat_array)
 print(f"The shape of the cat array is {cat_array.shape}.")
 # %%
 
+# Since it is an array, we can do whatever aray operations on it we want
 new_cat_array = np.where(cat_array < 100, 255, cat_array)
+# new_cat_array = cat_array[:,:,:]
+# new_cat_array[:,:,0] = 0
+# new_cat_array[:,:,1] = 0
 
 new_cat_image = Image.fromarray(new_cat_array)
 plt.imshow(new_cat_image)
