@@ -28,7 +28,7 @@ for i in range(5):
     plt.imshow(my_image)
     plt.show()
 #%%
-# There's a lot of image in here. Lets use a keras utility to load it in as a dataset
+# There's a lot of image in here. Let's use a keras utility to load it in as a dataset
 # It'l; take in the whole directory just a couple of lines of code
 # WE could do this from scrath, using tensorflows data module, if we wanted finer grain control
 
@@ -100,13 +100,39 @@ val_ds = val_ds.cache().prefetch(buffer_size=AUTOTUNE)
 # We're also going to need to standardize the array. RGB channel_values run from 0 -255
 # This isn't ideal for a neural network! Ideally, we'd have values from 0 to 1. We can use a
 # rescalling layer to normalize our values to be in the 0 to 1 range.
-normalizaion_layer = layers.Rescaling(1./255, input_shape=(IMG_HEIGHT, IMG_WIDTH,3))
+normalizaion_layer = layers.Rescaling(1./255)
 
 # We could apply this layer right now using Dataset.map, but we'll just throw it in at the
 # start of our model instead.
+
+#%%
+# Data augmentation generates additional trainingg data from existing examples.
+# Keras helpfully provides some pre-processing layers to help us do this:
+data_augmentation = Sequential([
+    layers.RandomFlip("Horizontal"),
+    layers.RandomRotation(0.1),
+    layers.RandomZoom(0.1)
+
+])
+
+# Let's visualize this so we can see what types of transormation are being applied"
+plt.figure(figsize=(10,10))
+for images, _ in train_ds.take(1):
+    for i in range(3):
+        for j in range(1,4):
+            augmented_images = data_augmentation(images)
+            ax = plt.subplot(3,3,i*3 + j)
+            plt.imshow(augmented_images[i].numpy().astype('uint8'))
+            plt.axis('off')
+
+plt.show()
+
+
 #%%
 # Our next step is to build the model
 model = Sequential([
+    layers.Input(shape=(IMG_HEIGHT, IMG_WIDTH, 3)),
+    data_augmentation,
     normalizaion_layer,
     layers.Conv2D(16,3,padding='same', activation='relu'),
     layers.MaxPooling2D(),
@@ -114,6 +140,7 @@ model = Sequential([
     layers.MaxPooling2D(),
     layers.Conv2D(64,3,padding='same',activation='relu'),
     layers.MaxPool2D(),
+    layers.Dropout(0.2),
     layers.Flatten(),
     layers.Dense(128, activation='relu'),
     layers.Dense(num_classes)
@@ -163,5 +190,12 @@ plt.legend(loc='upper left')
 plt.title('Training and validation loss')
 
 plt.show()
+# %%
+# Save the model so we can use it later
+model_path = Path("./data/models/flower_models.keras")
+model_path.parent.mkdir(exist_ok=True,parents=True)
+model.save(model_path)
+
+# %%
 
 
