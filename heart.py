@@ -48,6 +48,7 @@ def graph_stuff(df_copy):
     cond_health = df_copy['condition'] == 'Healthy'
     cond_sick = df_copy['condition'] == 'Heart Patient'
 
+
     # Compare age with health
     # Put values in 15 different bins. Alpha is opacity. Color blue.
     plt.hist(df_copy[cond_health]['age'], color='b', alpha=0.5, bins=15, label="Healthy")
@@ -78,7 +79,7 @@ print(df_heart.head().to_string())
 print(df_heart.describe())
 
 # Graph some of the fields
-# graph_stuff(df_heart.copy())
+graph_stuff(df_heart.copy())
 
 # Find the outliers, high cholesteral and get rid of it
 df_high_col = df_heart[df_heart['chol'] > 500]
