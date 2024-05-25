@@ -104,3 +104,4 @@ history = model.fit(x,y, epochs=100, validation_split=0.2, batch_size=64)
 loss_chart(history)
 acc_chart(history)
 # %%
+
