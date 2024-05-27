@@ -83,7 +83,7 @@ def predict_crop(input_data):
     predicted_class = np.argmax(prediction, axis=1)
     return [int_to_crop[idx] for idx in predicted_class]
 
-# Example prediction
+
 sample_input = np.array([[90, 42, 43, 20.879744, 82.002744, 6.502985, 202.935536]])
 predicted_crop = predict_crop(sample_input)
 print(f"Predicted crop: {predicted_crop}")
