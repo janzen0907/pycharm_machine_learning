@@ -6,8 +6,8 @@ import shutil
 import keras
 
 # Change these to reflect wherever you put your data:
-SYNTHETIC_DATA_DIR = "D:/pycharm/assignment_three/image_classification/data/synthetic"
-TEST_DATA_DIR = "D:/pycharm/assignment_three/image_classification/data/real_graphs"
+SYNTHETIC_DATA_DIR = "./image_classification/data/synthetic"
+TEST_DATA_DIR = "./image_classification/data/real_graphs"
 # Set our constants to what we used in our model generation code
 IMG_HEIGHT = 150
 IMG_WIDTH = 150

@@ -1,4 +1,5 @@
 # Imports and function definitions
+import jupyter
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
@@ -8,6 +9,8 @@ from pathlib import Path
 import keras
 from keras import layers
 from keras import Sequential
+
+# %%
 
 # Set some constants we'll use in all functions
 IMG_HEIGHT = 150
@@ -29,7 +32,8 @@ def generate_empty_graph():
 
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
-    ax.set_title("Linear Graph")
+    # ax.set_title("Linear Graph")
+    ax.set_title("Empty Graph")
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
     fig.canvas.draw()
@@ -117,20 +121,25 @@ def generate_dataset(data_dir="data/synthetic"):
     Path(f"{data_dir}/empty/").mkdir(exist_ok=True,parents=True)
 
     # Create 100 images of each type
+    # Consider generating more images, this will slow down the program
+    # Upped it to 150 to see performance impacts
     for i in range(1,100):
         generate_empty_graph().save(Path(f"{data_dir}/empty/empty{i}.png"),"PNG")
         generate_linear_graph().save(Path(f"{data_dir}/linear/linear{i}.png"),"PNG")
         generate_quadratic_graph().save(Path(f"{data_dir}/quadratic/quadratic{i}.png"),"PNG")
         generate_trigonometric_graph().save(Path(f"{data_dir}/trigonometric/trigonometric{i}.png"),"PNG")
-
+# %%
 def generate_model(data_dir="data/synthetic"):
     """
     Generates a tensorflow model from the data in the supplied data directory
     returns: An trained model for identifying graph types
     rtype: Sequential
     """
-    # Standard batch size and validation split:
-    BATCH_SIZE = 32
+    # Standard batch size (32) and validation split (0.2):
+    # Consider raising these values to see if accuracy is affected
+    # It seemed raising the validation split was lowering results, went from about 35% to 25% farily consistantly
+    # The model seems to really struggle with the empty graph specifically
+    BATCH_SIZE = 48
     VALIDATION_SPLIT = 0.2
     train_ds = keras.utils.image_dataset_from_directory(
         data_dir,
@@ -157,9 +166,23 @@ def generate_model(data_dir="data/synthetic"):
     train_ds = train_ds.cache().shuffle(1000).prefetch(buffer_size=AUTOTUNE)
     val_ds = val_ds.cache().prefetch(buffer_size=AUTOTUNE)
 
+
+    # Augment the data to provide additional training
+    data_augmentation = Sequential([
+        layers.RandomFlip("Horizontal"),
+        # Changing the contrast lowered the accuracy, was testing
+        # layers.RandomContrast(0.1),
+        layers.RandomRotation(0.1),
+        layers.RandomZoom(0.1),
+
+    ])
+
     # Assemble our model
     model = Sequential([
         layers.Input((IMG_HEIGHT,IMG_WIDTH,3)),
+        # Add a data augmentation layer
+        data_augmentation,
+        # The below is a normalization layer, leave this as is
         layers.Rescaling(1./255),
         layers.Conv2D(8,3, padding='same', activation='relu'),
         layers.MaxPooling2D(),
@@ -171,19 +194,21 @@ def generate_model(data_dir="data/synthetic"):
         layers.Dense(64, activation='relu'),
         layers.Dense(len(class_names))   
     ])
-
+#%%
     # Compile the model
     model.compile(optimizer='adam',
                 loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
                 metrics=['accuracy'])
     print(model.summary())
 
-    # Train the model for 10 epochs
-    epochs = 10
+    # DEFAULT: Train the model for 10 epochs
+    # I want to train for more epochs and see if it affects results
+    # Starting with 20
+    epochs = 20
     history = model.fit(
         train_ds,
         validation_data=val_ds,
         epochs=epochs
     )
-
+# So far 38% was is the best result
     return model
