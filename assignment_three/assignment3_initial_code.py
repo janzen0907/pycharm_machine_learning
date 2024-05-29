@@ -123,7 +123,7 @@ def generate_dataset(data_dir="data/synthetic"):
     # Create 100 images of each type
     # Consider generating more images, this will slow down the program
     # Upped it to 150 to see performance impacts
-    for i in range(1,100):
+    for i in range(1,125):
         generate_empty_graph().save(Path(f"{data_dir}/empty/empty{i}.png"),"PNG")
         generate_linear_graph().save(Path(f"{data_dir}/linear/linear{i}.png"),"PNG")
         generate_quadratic_graph().save(Path(f"{data_dir}/quadratic/quadratic{i}.png"),"PNG")
@@ -139,7 +139,8 @@ def generate_model(data_dir="data/synthetic"):
     # Consider raising these values to see if accuracy is affected
     # It seemed raising the validation split was lowering results, went from about 35% to 25% farily consistantly
     # The model seems to really struggle with the empty graph specifically
-    BATCH_SIZE = 48
+    # 64 seems to be good, any higher and the results become inconsistent
+    BATCH_SIZE = 64
     VALIDATION_SPLIT = 0.2
     train_ds = keras.utils.image_dataset_from_directory(
         data_dir,
@@ -177,7 +178,15 @@ def generate_model(data_dir="data/synthetic"):
 
     ])
 
-    # Assemble our model
+    # data_augmentation = Sequential([
+    #     layers.RandomFlip("horizontal_and_vertical"),
+    #     layers.RandomRotation(0.2),
+    #     layers.RandomZoom(0.2),
+    #     layers.RandomTranslation(0.2, 0.2),
+    #     # I think contrast makes it worse
+    #     # layers.RandomContrast(0.2),
+    # ])
+
     model = Sequential([
         layers.Input((IMG_HEIGHT,IMG_WIDTH,3)),
         # Add a data augmentation layer
@@ -190,11 +199,49 @@ def generate_model(data_dir="data/synthetic"):
         layers.MaxPooling2D(),
         layers.Conv2D(32,3,padding='same', activation='relu'),
         layers.MaxPooling2D(),
+        # Added a Layer
+        layers.Conv2D(64,3,padding='same', activation='relu'),
+        layers.MaxPooling2D(),
+        # Add another layer
+        layers.Conv2D(128,3,padding='same', activation='relu'),
+        layers.MaxPooling2D(),
+        # Add another layer
+        layers.Conv2D(256,3,padding='same', activation='relu'),
+        layers.MaxPooling2D(),
+        # Add another layer
+        # layers.Conv2D(512,3,padding='same', activation='relu'),
+        # layers.MaxPooling2D(),
         layers.Flatten(),
-        layers.Dense(64, activation='relu'),
-        layers.Dense(len(class_names))   
+        # Drop some of the data
+        # Higher than 0.2 seems to be inconsistent
+        # layers.Dropout(0.4),
+        # Was originally 64
+        layers.Dense(256, activation='relu'),
+        layers.Dense(len(class_names))
     ])
-#%%
+    # Assemble our model
+
+    # model = Sequential([
+    #     layers.Input((IMG_HEIGHT, IMG_WIDTH, 3)),
+    #     data_augmentation,
+    #     layers.Rescaling(1. / 255),
+    #     layers.Conv2D(32, 3, padding='same', activation='relu'),
+    #     layers.MaxPooling2D(),
+    #     layers.Conv2D(64, 3, padding='same', activation='relu'),
+    #     layers.MaxPooling2D(),
+    #     layers.Conv2D(128, 3, padding='same', activation='relu'),
+    #     layers.MaxPooling2D(),
+    #     layers.Conv2D(256, 3, padding='same', activation='relu'),
+    #     layers.MaxPooling2D(),
+    #     layers.Flatten(),
+    #     # Add an extra layer
+    #     layers.Dense(128, activation='relu'),
+    #     # Drop some of the data to avoid overfitting
+    #     layers.Dropout(0.2),
+    #     layers.Dense(len(class_names))
+    # ])
+
+    #%%
     # Compile the model
     model.compile(optimizer='adam',
                 loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
@@ -204,11 +251,12 @@ def generate_model(data_dir="data/synthetic"):
     # DEFAULT: Train the model for 10 epochs
     # I want to train for more epochs and see if it affects results
     # Starting with 20
-    epochs = 20
+    # Changed back to 10 don't think that more epocs really helped.
+    epochs = 10
     history = model.fit(
         train_ds,
         validation_data=val_ds,
         epochs=epochs
     )
-# So far 38% was is the best result
+# So far 45% is the best result
     return model
