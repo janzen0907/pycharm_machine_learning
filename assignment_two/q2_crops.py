@@ -36,8 +36,8 @@ def do_visual(df_sample):
 
 # Read in the CSV file
 
-# df_crop = pd.read_csv("D:/pycharm_machine_learning/Data/Crop_Recommendation.csv")
-df_crop = pd.read_csv("D:/Pycharm/Data/Crop_Recommendation.csv")
+df_crop = pd.read_csv("D:/pycharm_machine_learning/Data/Crop_Recommendation.csv")
+# df_crop = pd.read_csv("D:/Pycharm/Data/Crop_Recommendation.csv")
 print(df_crop.head().to_string())
 print(f"Shape is {df_crop.shape}")
 # %%
@@ -74,6 +74,8 @@ history = model.fit(x, y, epochs=100, validation_split=.4, batch_size=32)
 loss_chart(history)
 acc_chart(history)
 # %%
+
+
 
 def predict_crop(input_data):
     """Function to predict the crop and map the index to a crop name"""
@@ -113,4 +115,8 @@ print(f"Should be chickpea: {predicted_chickpea}")
 print(f"Should be Beans: {predicted_beans}")
 
 
+
 # %%
+
+
+

@@ -8,7 +8,7 @@ from keras import layers, models
 
 
 # %%
-#
+# Function from class to creat accuracy chart
 def acc_chart(results):
     plt.title("Accuracy of Model")
     plt.ylabel("Accuracy")
@@ -63,7 +63,7 @@ def show_histograms(df):
     plt.title("Loan Status vs Age")
     plt.show()
 
-    print(df.head())
+
     # Compare loan status against education
     plt.hist(df[df_approved]['education_level'], color='b', alpha=0.5, bins=5, label="Approved")
     plt.hist(df[df_denied]['education_level'], color='g', alpha=0.5, bins=5, label="Denied")
@@ -111,5 +111,5 @@ loss_chart(history)
 acc_chart(history)
 
 # %%
-# Save the mode
+# Save the model
 model.save("D:/pycharm/Models/loan.keras")
