@@ -214,7 +214,7 @@ def generate_model(data_dir="data/synthetic"):
         layers.Flatten(),
         # Drop some of the data
         # Higher than 0.2 seems to be inconsistent
-        # layers.Dropout(0.4),
+        layers.Dropout(0.2),
         # Was originally 64
         layers.Dense(256, activation='relu'),
         layers.Dense(len(class_names))
