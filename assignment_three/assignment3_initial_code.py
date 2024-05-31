@@ -12,6 +12,9 @@ from keras import Sequential
 
 # %%
 
+# Author: John Janzen
+# Class: COET 295
+
 # Set some constants we'll use in all functions
 IMG_HEIGHT = 150
 IMG_WIDTH = 150
@@ -30,12 +33,13 @@ def generate_empty_graph():
     rtype: Image
     """
 
-    fig = plt.figure()
+    fig = plt.figure(figsize=(IMG_WIDTH/100, IMG_HEIGHT/100))
     ax = fig.add_subplot(1,1,1)
     # ax.set_title("Linear Graph")
-    ax.set_title("Empty Graph")
-    ax.set_xlabel("X")
-    ax.set_ylabel("Y")
+    # ax.set_title("Empty Graph")
+    # ax.set_xlabel("X")
+    # ax.set_ylabel("Y")
+    # Turn off the axis
     fig.canvas.draw()
     my_array = np.asarray(fig.canvas.buffer_rgba())
     plt.close()
@@ -49,9 +53,17 @@ def generate_linear_graph():
     rtype: Image
     """
     x_series = x_series = np.arange(1,20)
-    a = random.random() * 3
-    b = random.random() * 100
-    y_series = x_series * a + b
+    # a = random.random() * 3
+    # b = random.random() * 100
+    # Have a positive or negative slope
+    a = random.uniform(-3, 3)
+    # Vary the interception points more
+    b = random.uniform(-30, 30)
+    # noise = np.random.normal(0, 5, x_series.shape)
+    y_series = a * x_series + b
+    # y_series = x_series * a + b
+
+
 
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
@@ -72,16 +84,22 @@ def generate_quadratic_graph():
     rtype: Image
     """
     x_series = x_series = np.arange(1,20)
-    a = random.random() * 3
-    b = random.random() * 100
-    y_series = (a * x_series ** 2) + b
+    # a = random.random() * 3
+    # b = random.random() * 100
+    # y_series = (a * x_series ** 2) + b
+    a = random.uniform(-1, 1)
+    b = random.uniform(-10, 10)
+    c = random.uniform(-30, 30)
+    y_series = a * x_series ** 2 + b * x_series + c
 
-    fig = plt.figure()
+    fig = plt.figure(figsize=(IMG_WIDTH/100, IMG_HEIGHT/100))
     ax = fig.add_subplot(1,1,1)
     ax.plot(x_series, y_series)
     ax.set_title("Quadratic Graph")
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
+    # Add a grid, may help the model
+    ax.grid(True)
     fig.canvas.draw()
     my_array = np.asarray(fig.canvas.buffer_rgba())
     plt.close()
@@ -95,16 +113,19 @@ def generate_trigonometric_graph():
     rtype: Image
     """
     x_series = x_series = np.arange(1,20)
-    a = random.random() * 3
-    b = random.random() * 100
+    # a = random.random() * 3
+    # b = random.random() * 100
+    a = random.uniform(1,3 )
+    b = random.uniform(0, 2 * np.pi)
     y_series = ( a * np.sin(x_series) ) + b
 
-    fig = plt.figure()
+    fig = plt.figure(figsize=(IMG_WIDTH/100, IMG_HEIGHT/100))
     ax = fig.add_subplot(1,1,1)
     ax.plot(x_series, y_series)
     ax.set_title("Trigonometric Graph")
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
+    ax.grid(True)
     fig.canvas.draw()
     my_array = np.asarray(fig.canvas.buffer_rgba())
     plt.close()
@@ -178,14 +199,6 @@ def generate_model(data_dir="data/synthetic"):
 
     ])
 
-    # data_augmentation = Sequential([
-    #     layers.RandomFlip("horizontal_and_vertical"),
-    #     layers.RandomRotation(0.2),
-    #     layers.RandomZoom(0.2),
-    #     layers.RandomTranslation(0.2, 0.2),
-    #     # I think contrast makes it worse
-    #     # layers.RandomContrast(0.2),
-    # ])
 
     model = Sequential([
         layers.Input((IMG_HEIGHT,IMG_WIDTH,3)),
@@ -208,7 +221,7 @@ def generate_model(data_dir="data/synthetic"):
         # Add another layer
         layers.Conv2D(256,3,padding='same', activation='relu'),
         layers.MaxPooling2D(),
-        # Add another layer
+        # Add another layer. /this was to many layers
         # layers.Conv2D(512,3,padding='same', activation='relu'),
         # layers.MaxPooling2D(),
         layers.Flatten(),
@@ -219,27 +232,7 @@ def generate_model(data_dir="data/synthetic"):
         layers.Dense(256, activation='relu'),
         layers.Dense(len(class_names))
     ])
-    # Assemble our model
 
-    # model = Sequential([
-    #     layers.Input((IMG_HEIGHT, IMG_WIDTH, 3)),
-    #     data_augmentation,
-    #     layers.Rescaling(1. / 255),
-    #     layers.Conv2D(32, 3, padding='same', activation='relu'),
-    #     layers.MaxPooling2D(),
-    #     layers.Conv2D(64, 3, padding='same', activation='relu'),
-    #     layers.MaxPooling2D(),
-    #     layers.Conv2D(128, 3, padding='same', activation='relu'),
-    #     layers.MaxPooling2D(),
-    #     layers.Conv2D(256, 3, padding='same', activation='relu'),
-    #     layers.MaxPooling2D(),
-    #     layers.Flatten(),
-    #     # Add an extra layer
-    #     layers.Dense(128, activation='relu'),
-    #     # Drop some of the data to avoid overfitting
-    #     layers.Dropout(0.2),
-    #     layers.Dense(len(class_names))
-    # ])
 
     #%%
     # Compile the model
@@ -249,14 +242,12 @@ def generate_model(data_dir="data/synthetic"):
     print(model.summary())
 
     # DEFAULT: Train the model for 10 epochs
-    # I want to train for more epochs and see if it affects results
-    # Starting with 20
-    # Changed back to 10 don't think that more epocs really helped.
-    epochs = 10
+
+    epochs = 15
     history = model.fit(
         train_ds,
         validation_data=val_ds,
         epochs=epochs
     )
-# So far 45% is the best result
+
     return model
